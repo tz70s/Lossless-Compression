@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 void countLetters(FILE *input) {
     char c;
     int freqArray[27] = { 0 };
@@ -26,7 +25,7 @@ void countLetters(FILE *input) {
 
 int main(int argc, char *argv[]) {
     FILE *input, *output;
-    
+	    
     input = fopen(argv[1], "r");
     countLetters(input);
     return 0;
