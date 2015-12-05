@@ -1,4 +1,4 @@
-count:count.c
-	gcc -o count count.c
+huffman:huffman.c
+	gcc -o huffman huffman.c
 clean:
-	rm -rf count *.o
+	rm -rf huffman *.o
