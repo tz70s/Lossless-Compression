@@ -2,15 +2,22 @@
 #include <stdlib.h>
 
 int freqArray[27] = { 0 };
-int sortFreq[27] = { 0 };
-
-struct node {
+int maxFreq = 0;
+typedef struct node {
 	int freq;
 	char letter;
 	struct node *lchild, *rchild;
-};
+} Node;
 
-typedef struct node Node;
+Node arr[27];
+
+/* 
+=============================
+
+Count the frequencies of letters
+
+=============================
+*/
 
 void countLetters(FILE *input) {
     char c;
@@ -20,37 +27,142 @@ void countLetters(FILE *input) {
         for( loopCounter = 0; loopCounter < 27; loopCounter++ ) {
             if ( loopCounter == (c-'a')) {
                 freqArray[loopCounter]++;
+				maxFreq++;
             }
         }
-        if (c == ' ') freqArray[26]++;
+        if (c == ' ') {
+			freqArray[26]++;
+			maxFreq++;
+		}
     }
 }
 
-
 void buildTree() {
-	Node *temp;
-	Node *arr[27];
 	int i;
-	for (i=0;i<27;i++) {
-		arr[i] = malloc(sizeof(Node));
-		arr[i]->freq = freqArray[i];
-		arr[i]->letter = i;
-		arr[i]->lchild = NULL;
-		arr[i]->rchild = NULL;
+	for (i = 0; i < 27; i++ ) {
+		arr[i].freq = freqArray[i];
+		arr[i].letter = i;
+		arr[i].lchild = NULL;
+		arr[i].rchild = NULL;
+
 	}
+}
+
+/* 
+===========================
+
+Sort tree
+
+===========================
+*/
+
+void InsertionSort(Node* pNodes, int num) {
 	
-	for (i=0;i<26;i++) {
-		printf("%c : ", arr[i]->letter + 'a');
-		printf("%d \n", arr[i]->freq);
+	if( NULL == pNodes || num < 0 ) return;
+
+	int i, j;
+	for( i = 1; i < num; i++ ) {
+		Node pivot = pNodes[i];
+		for( j = i - 1; j >= 0; j-- ) {
+			if( pivot.freq < pNodes[j].freq ) {
+				pNodes[j+1] = pNodes[j];
+			} else {
+				break;
+			}
+		}
+		if( pivot.freq < pNodes[j+1].freq ) {
+			pNodes[j+1] = pivot;
+		}
 	}
-	printf(" : %d \n", arr[26]->freq);
+}
+
+/* 
+==========================
+
+Huffman Tree
+
+==========================
+*/
+
+void prefix(Node* pNode) {
+	if(NULL == pNode) return;
+	if(pNode && (pNode->lchild == NULL) && (pNode->rchild == NULL) ) {
+		printf("%c : ",pNode->letter + 'a');
+		printf("%d\n",pNode->freq);
+		return;
+	}
+	prefix(pNode->lchild);
+	prefix(pNode->rchild);
+}
+
+void prefix_free(Node* pNode) {
+	if(NULL == pNode) return;
+	if(pNode && (pNode->lchild == NULL) && (pNode->rchild == NULL) ) {
+		free(pNode);
+		return;
+	}
+	prefix_free(pNode->lchild);
+	prefix_free(pNode->rchild);
+	free(pNode);
+}
+
+Node* BuildHuffmanTree(Node* pData, int num) {
+	
+	int remain = num;
+	int index = 0;
+	
+	Node* pRoot = NULL;
+	Node* pLeft = NULL;
+	Node* pRight = NULL;
+	
+	while( remain > 1) {
+
+		InsertionSort(&arr[index], remain);
+		pRoot = (Node*)calloc(1, sizeof(Node));
+		pLeft = (Node*)calloc(1, sizeof(Node));
+		pRight = (Node*)calloc(1, sizeof(Node));
+
+		if( pRoot && pLeft && pRight) {
+			*pLeft = arr[index];
+			*pRight = arr[index+1];
+			pRoot->letter = '\0';
+			pRoot->freq = pLeft->freq + pRight->freq;
+			pRoot->lchild = pLeft;
+			pRoot->rchild = pRight;
+			arr[index+1] = *pRoot;
+		}  
+		index++;
+		remain -= 1;
+	}
+
+	return pRoot;
 }
 
 int main(int argc, char *argv[]) {
     FILE *input, *output;
-	    
+	
     input = fopen(argv[1], "r");
     countLetters(input);
-	buildTree();
+    buildTree();
+    /*
+    int i = 0;
+    for (; i < 27; i++) {
+    	printf("%c : ", arr[i].letter + 'a');
+    	printf("%d\n", arr[i].freq);
+    }
+    */
+    InsertionSort(&arr[0],27);
+    /*
+    i = 0;
+    for (; i < 27; i++) {
+    	printf("%c : ", arr[i].letter + 'a');
+    	printf("%d\n", arr[i].freq);
+    }
+    */
+
+    Node* pRoot = BuildHuffmanTree(arr,27);
+    printf("%d\n",pRoot->freq);
+ 	prefix(pRoot);
+
     return 0;
 }
