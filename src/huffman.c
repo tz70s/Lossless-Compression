@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdint.h>
 
 int freqArray[27] = { 0 };
-int maxFreq = 0;
 typedef struct node {
 	int freq;
 	char letter;
@@ -10,6 +10,8 @@ typedef struct node {
 } Node;
 
 Node arr[27];
+int maxFreq = 0;
+int coArr[27] = { 0 };
 
 /* 
 =============================
@@ -84,15 +86,16 @@ Huffman Tree
 ==========================
 */
 
-void prefix(Node* pNode) {
+void prefix(Node* pNode ,int code) {
 	if(NULL == pNode) return;
 	if(pNode && (pNode->lchild == NULL) && (pNode->rchild == NULL) ) {
-		printf("%c : ",pNode->letter + 'a');
-		printf("%d\n",pNode->freq);
+		if(pNode->freq != 0) {
+			coArr[(int)pNode->letter] = code;
+		}
 		return;
 	}
-	prefix(pNode->lchild);
-	prefix(pNode->rchild);
+	prefix(pNode->lchild , code *10 + 1);
+	prefix(pNode->rchild , code *10 + 2);
 }
 
 void prefix_free(Node* pNode) {
@@ -138,6 +141,32 @@ Node* BuildHuffmanTree(Node* pData, int num) {
 	return pRoot;
 }
 
+
+/*
+============================
+
+Compression
+
+============================
+*/
+void Compression(FILE *input) {
+	char c;
+	int len = 0;
+	int numarr[100];
+	int index = 0;
+
+	while ((c=fgetc(input)) != EOF) {
+        int loopCounter = 0;
+        printf("%c",c);
+        for( loopCounter = 0; loopCounter < 27; loopCounter++ ) {
+            if ( loopCounter == (c-'a')) {
+            	printf("%d",coArr[loopCounter]);
+            }
+        }
+    }
+
+}
+
 int main(int argc, char *argv[]) {
     FILE *input, *output;
 	
@@ -159,10 +188,17 @@ int main(int argc, char *argv[]) {
     	printf("%d\n", arr[i].freq);
     }
     */
-
     Node* pRoot = BuildHuffmanTree(arr,27);
     printf("%d\n",pRoot->freq);
- 	prefix(pRoot);
+    int code = 0;
+ 	prefix(pRoot, code);
+ 	int i = 0;
+ 	for(; i<27; i++) {
+ 		printf("%c : ",i+'a');
+ 		printf("%d\n",coArr[i]);
+ 	}
+
+ 	Compression(input);
 
     return 0;
 }
