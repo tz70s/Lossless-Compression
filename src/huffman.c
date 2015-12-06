@@ -94,8 +94,8 @@ void prefix(Node* pNode ,int code) {
 		}
 		return;
 	}
-	prefix(pNode->lchild , code *10 + 1);
-	prefix(pNode->rchild , code *10 + 2);
+	prefix(pNode->lchild , code *10 + 2);
+	prefix(pNode->rchild , code *10 + 1);
 }
 
 void prefix_free(Node* pNode) {
@@ -151,27 +151,52 @@ Compression
 */
 void Compression(FILE *input) {
 	char c;
-	int len = 0;
-	int numarr[100];
+	uint16_t numarr[100] = {0};
 	int index = 0;
+	int shift = 0;
 
 	while ((c=fgetc(input)) != EOF) {
         int loopCounter = 0;
-        printf("%c",c);
         for( loopCounter = 0; loopCounter < 27; loopCounter++ ) {
             if ( loopCounter == (c-'a')) {
             	printf("%d",coArr[loopCounter]);
+            	int temp = coArr[loopCounter];
+            	while(temp != 0) {
+            		int x = temp % 10 - 1;
+            		temp = temp / 10;
+            		numarr[index] |= x;
+            		numarr[index] <<= 1;
+            		shift++;
+            		if(shift == 15) {
+            			index++;
+            			shift = 0;
+            		}
+            	}
+            	
             }
+
         }
     }
 
+    printf("\n\n%u\n",numarr[0]);
+
+    for(index = 0; index < 100; index++) {
+    	if(numarr[index] == 0) {
+    		break;
+    	} else {
+    		printf("%u",numarr[index]);
+    	}
+    }
 }
 
 int main(int argc, char *argv[]) {
-    FILE *input, *output;
+    FILE *counter,*input, *output;
 	
-    input = fopen(argv[1], "r");
-    countLetters(input);
+	char *s = argv[1];
+    counter = fopen(s, "r");
+
+    countLetters(counter);
+    fclose(counter);
     buildTree();
     /*
     int i = 0;
@@ -198,7 +223,9 @@ int main(int argc, char *argv[]) {
  		printf("%d\n",coArr[i]);
  	}
 
+ 	input = fopen(s, "r");
  	Compression(input);
+ 	printf("\n");
 
     return 0;
 }
